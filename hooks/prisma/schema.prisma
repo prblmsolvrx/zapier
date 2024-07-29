@@ -1,46 +1,126 @@
-/* This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-*/
-
+// Specifies that Prisma should generate the client using the "prisma-client-js" provider.
 generator client {
   provider = "prisma-client-js"
 }
 
+// Defines the database connection configuration.
+// The "provider" specifies that we're using PostgreSQL.
+// The "url" retrieves the connection string from the environment variable "DATABASE_URL".
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// Defines the "User" model with the following fields:
+// - "id": Primary key, an auto-incremented integer.
+// - "name": A string field to store the user's name.
+// - "email": A string field to store the user's email address.
+// - "password": A string field to store the user's password.
+// - "zaps": A one-to-many relationship with the "Zap" model, meaning one user can have multiple zaps.
 model User {
   id       Int    @id @default(autoincrement())
   name     String
-  email    String @unique
+  email    String
   password String
+  zaps     Zap[]
 }
 
+// Defines the "Zap" model with the following fields:
+// - "id": Primary key, a UUID string.
+// - "triggerId": A string to identify the trigger used by the zap.
+// - "userId": Foreign key linking to the "User" model.
+// - "actions": A one-to-many relationship with the "Action" model.
+// - "trigger": A one-to-one optional relationship with the "Trigger" model.
+// - "user": Defines the relationship with the "User" model.
+// - "zapRuns": A one-to-many relationship with the "ZapRun" model.
 model Zap {
-  id       String @id @default(uuid())
+  id        String   @id @default(uuid())
+  triggerId String
+  userId    Int
+  actions   Action[]
+  trigger   Trigger?
+  user      User     @relation(fields: [userId], references: [id])
+  zapRuns   ZapRun[]
+}
+
+// Defines the "Trigger" model with the following fields:
+// - "id": Primary key, a UUID string.
+// - "zapId": A unique string identifying the zap.
+// - "triggerId": A string identifying the trigger.
+// - "metadata": JSON field for storing additional metadata, defaults to an empty object.
+// - "type": Defines the relationship with the "AvailableTrigger" model.
+// - "zap": Defines the relationship with the "Zap" model.
+model Trigger {
+  id        String           @id @default(uuid())
+  zapId     String           @unique
+  triggerId String
+  metadata  Json             @default("{}")
+  type      AvailableTrigger @relation(fields: [triggerId], references: [id])
+  zap       Zap              @relation(fields: [zapId], references: [id])
+}
+
+// Defines the "Action" model with the following fields:
+// - "id": Primary key, a UUID string.
+// - "zapId": A string identifying the zap.
+// - "actionId": A string identifying the action.
+// - "metadata": JSON field for storing additional metadata, defaults to an empty object.
+// - "sortingOrder": Integer field to define the order of actions, defaults to 0.
+// - "type": Defines the relationship with the "AvailableAction" model.
+// - "zap": Defines the relationship with the "Zap" model.
+model Action {
+  id           String          @id @default(uuid())
+  zapId        String
+  actionId     String
+  metadata     Json            @default("{}")
+  sortingOrder Int             @default(0)
+  type         AvailableAction @relation(fields: [actionId], references: [id])
+  zap          Zap             @relation(fields: [zapId], references: [id])
+}
+
+// Defines the "AvailableAction" model with the following fields:
+// - "id": Primary key, a UUID string.
+// - "name": A string field for the name of the action.
+// - "image": A string field for an image related to the action.
+// - "actions": A one-to-many relationship with the "Action" model.
+model AvailableAction {
+  id      String   @id @default(uuid())
+  name    String
+  image   String
+  actions Action[]
+}
+
+// Defines the "AvailableTrigger" model with the following fields:
+// - "id": Primary key, a UUID string.
+// - "name": A string field for the name of the trigger.
+// - "image": A string field for an image related to the trigger.
+// - "triggers": A one-to-many relationship with the "Trigger" model.
+model AvailableTrigger {
+  id       String    @id @default(uuid())
+  name     String
+  image    String
   triggers Trigger[]
 }
 
-model Trigger {
-  id     String          @id @default(uuid())
-  zapId  String
-  type   AvailableTriggers
-  zap    Zap             @relation(fields: [zapId], references: [id])
+// Defines the "ZapRun" model with the following fields:
+// - "id": Primary key, a UUID string.
+// - "zapId": A string identifying the zap.
+// - "metadata": JSON field for storing additional metadata.
+// - "zap": Defines the relationship with the "Zap" model.
+// - "zapRunOutbox": An optional one-to-one relationship with the "ZapRunOutbox" model.
+model ZapRun {
+  id           String        @id @default(uuid())
+  zapId        String
+  metadata     Json
+  zap          Zap           @relation(fields: [zapId], references: [id])
+  zapRunOutbox ZapRunOutbox?
 }
 
-model AvailableTriggers {
-  id   String @id @default(uuid())
-  name String
-}
-
-enum TriggerType {
-  TYPE1
-  TYPE2
-  TYPE3
-  // Add more types as needed
+// Defines the "ZapRunOutbox" model with the following fields:
+// - "id": Primary key, a UUID string.
+// - "zapRunId": A unique string identifying the zap run.
+// - "zapRun": Defines the relationship with the "ZapRun" model.
+model ZapRunOutbox {
+  id       String @id @default(uuid())
+  zapRunId String @unique
+  zapRun   ZapRun @relation(fields: [zapRunId], references: [id])
 }
