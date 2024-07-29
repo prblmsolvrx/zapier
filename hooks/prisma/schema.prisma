@@ -1,8 +1,9 @@
-// This is your Prisma schema file,
+/* This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+*/
 
 generator client {
   provider = "prisma-client-js"
@@ -13,21 +14,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-   id         Int @default(autoincreament())
-   name       String
-   email      String
-   password   String
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
 }
 
 model Zap {
-    id String @default(uuid())   
+  id       String @id @default(uuid())
+  triggers Trigger[]
 }
 
-model Trigger{
-  id   String @default(uuid())
+model Trigger {
+  id     String          @id @default(uuid())
+  zapId  String
+  type   AvailableTriggers
+  zap    Zap             @relation(fields: [zapId], references: [id])
 }
 
-enum {
-  
+model AvailableTriggers {
+  id   String @id @default(uuid())
+  name String
+}
+
+enum TriggerType {
+  TYPE1
+  TYPE2
+  TYPE3
+  // Add more types as needed
 }
