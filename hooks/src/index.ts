@@ -14,19 +14,21 @@ app.post("hooks/catch/:userId/:zapId",async (req,res)=>{
 
      //store in DB a new trigger
      await client.$transaction(async tx =>{
-          const run = await client.zapRun.create({
+          const run = await tx.zapRun.create({
                data: {
                     zapId : zapId,
                     metadata : body
                }
           });
-          await client.zapRunOutbox.create({
+          await tx.zapRunOutbox.create({
                data: {
                     zapRunId: run.id
                }
           })
      })
-
+     res.json({
+          message : "webhook received"
+     })
      // push in on to a queue(redis/kafka)
      // this zapid needs to be executed
 })
