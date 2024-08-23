@@ -1,3 +1,4 @@
+
 export function parse(text: string, values: any, startDelimeter = "{", endDelimeter = "}") {
     // You received {comment.amount} momey from {comment.link}
     let startIndex = 0;

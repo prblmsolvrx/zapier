@@ -12,7 +12,6 @@ CREATE TABLE "User" (
 CREATE TABLE "Zap" (
     "id" TEXT NOT NULL,
     "triggerId" TEXT NOT NULL,
-    "userId" INTEGER NOT NULL,
 
     CONSTRAINT "Zap_pkey" PRIMARY KEY ("id")
 );
@@ -22,7 +21,6 @@ CREATE TABLE "Trigger" (
     "id" TEXT NOT NULL,
     "zapId" TEXT NOT NULL,
     "triggerId" TEXT NOT NULL,
-    "metadata" JSONB NOT NULL DEFAULT '{}',
 
     CONSTRAINT "Trigger_pkey" PRIMARY KEY ("id")
 );
@@ -32,7 +30,6 @@ CREATE TABLE "Action" (
     "id" TEXT NOT NULL,
     "zapId" TEXT NOT NULL,
     "actionId" TEXT NOT NULL,
-    "metadata" JSONB NOT NULL DEFAULT '{}',
     "sortingOrder" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "Action_pkey" PRIMARY KEY ("id")
@@ -42,7 +39,6 @@ CREATE TABLE "Action" (
 CREATE TABLE "AvailableAction" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "image" TEXT NOT NULL,
 
     CONSTRAINT "AvailableAction_pkey" PRIMARY KEY ("id")
 );
@@ -51,7 +47,6 @@ CREATE TABLE "AvailableAction" (
 CREATE TABLE "AvailableTrigger" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "image" TEXT NOT NULL,
 
     CONSTRAINT "AvailableTrigger_pkey" PRIMARY KEY ("id")
 );
@@ -78,9 +73,6 @@ CREATE UNIQUE INDEX "Trigger_zapId_key" ON "Trigger"("zapId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ZapRunOutbox_zapRunId_key" ON "ZapRunOutbox"("zapRunId");
-
--- AddForeignKey
-ALTER TABLE "Zap" ADD CONSTRAINT "Zap_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Trigger" ADD CONSTRAINT "Trigger_triggerId_fkey" FOREIGN KEY ("triggerId") REFERENCES "AvailableTrigger"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
